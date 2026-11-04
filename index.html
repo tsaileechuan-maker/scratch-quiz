@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>六年級電腦課：Scratch動畫與角色測驗</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', '微軟正黑體', sans-serif;
+            background-color: #f0fdfa; /* 淺藍綠色背景，適合國小生，活潑且不刺眼 */
+        }
+        .question-card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transform: translateY(-2px);
+            transition: all 0.2s ease-in-out;
+        }
+        /* 自訂單選框顏色 */
+        input[type="radio"] {
+            accent-color: #0d9488;
+            width: 1.25rem;
+            height: 1.25rem;
+            cursor: pointer;
+        }
+        .radio-label {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .radio-label:hover {
+            background-color: #f0fdfa;
+        }
+    </style>
+</head>
+<body class="text-gray-800 min-h-screen flex flex-col items-center py-10 px-4 sm:px-6 lg:px-8">
+
+    <!-- 頂部標題 -->
+    <header class="w-full max-w-4xl text-center mb-10">
+        <h1 class="text-3xl md:text-4xl font-bold text-teal-700 mb-3 drop-shadow-sm">Scratch 動畫與角色測驗</h1>
+        <p class="text-teal-600 font-medium text-lg bg-teal-100 inline-block px-4 py-1 rounded-full">六年級電腦課練習題 (共25題)</p>
+    </header>
+
+    <!-- 步驟 1：登入畫面 (填寫班級座號) -->
+    <div id="login-section" class="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 transform transition-all border-t-8 border-teal-500">
+        <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">開始測驗前</h2>
+        <form id="login-form" class="space-y-6">
+            <div>
+                <label for="student-class" class="block text-lg font-semibold text-gray-700 mb-2">請輸入班級：</label>
+                <input type="text" id="student-class" required placeholder="例如：六年一班 或 601" 
+                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-0 focus:border-teal-500 text-lg transition-colors">
+            </div>
+            <div>
+                <label for="student-seat" class="block text-lg font-semibold text-gray-700 mb-2">請輸入座號：</label>
+                <input type="number" id="student-seat" required min="1" max="100" placeholder="例如：15" 
+                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-0 focus:border-teal-500 text-lg transition-colors">
+            </div>
+            <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 px-4 rounded-xl shadow-lg hover:shadow-xl transition duration-300 text-xl mt-4">
+                開始測驗
+            </button>
+        </form>
+    </div>
+
+    <!-- 步驟 2：測驗畫面 -->
+    <div id="quiz-section" class="w-full max-w-4xl hidden">
+        <!-- 考生資訊條 -->
+        <div class="bg-teal-600 text-white px-6 py-4 rounded-xl mb-8 shadow-md flex flex-col md:flex-row justify-between items-center font-bold text-lg sticky top-4 z-10">
+            <div class="mb-2 md:mb-0">考生：<span id="display-info" class="text-teal-100 text-xl tracking-wider"></span></div>
+            <div class="bg-teal-800 px-4 py-1 rounded-full text-sm">共 25 題 / 每題 4 分</div>
+        </div>
+
+        <form id="quiz-form">
+            <div id="questions-container" class="space-y-6 mb-8">
+                <!-- 題目會透過 JavaScript 動態生成到這裡 -->
+            </div>
+            
+            <div class="bg-white p-8 rounded-2xl shadow-xl text-center border-2 border-dashed border-teal-300">
+                <p class="text-rose-500 font-bold mb-4 text-lg">💡 請確認所有題目皆已作答，再點擊交卷！</p>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-12 rounded-xl shadow-lg hover:shadow-xl transition duration-300 text-xl w-full md:w-auto">
+                    確認交卷
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 步驟 3：成績與檢討畫面 -->
+    <div id="result-section" class="w-full max-w-4xl hidden space-y-8">
+        <!-- 成績總覽卡片 -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 text-center border-t-8 border-teal-500">
+            <h2 class="text-4xl font-black text-gray-800 mb-2">測驗完成！</h2>
+            <p class="text-xl text-gray-600 mb-8 border-b pb-6">班級：<span id="result-class" class="font-bold text-teal-700 text-2xl mx-2"></span> 
+               | 座號：<span id="result-seat" class="font-bold text-teal-700 text-2xl mx-2"></span></p>
+            
+            <div class="inline-block bg-teal-50 border-2 border-teal-100 rounded-3xl px-12 py-6 mb-8">
+                <span class="text-teal-800 text-xl font-bold">總分</span>
+                <div class="text-7xl md:text-8xl font-black text-teal-600 my-2 drop-shadow-md"><span id="final-score">100</span></div>
+                <span class="text-teal-600 font-medium">滿分 100 分</span>
+            </div>
+            
+            <div>
+                <button onclick="location.reload()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 px-10 rounded-xl shadow-lg transition duration-300 text-xl flex items-center justify-center mx-auto space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span>重新測驗</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 錯誤檢討區域 -->
+        <div id="mistakes-container" class="bg-white rounded-2xl shadow-xl p-6 md:p-10 hidden">
+            <div class="flex items-center space-x-3 mb-8 border-b-2 border-gray-100 pb-4">
+                <span class="text-3xl">📝</span>
+                <h3 class="text-2xl font-bold text-rose-600">錯題解析與說明</h3>
+            </div>
+            <div id="mistakes-list" class="space-y-6">
+                <!-- 錯誤題目會動態生成到這裡 -->
+            </div>
+        </div>
+        
+        <!-- 滿分訊息 -->
+        <div id="perfect-score-msg" class="bg-white rounded-2xl shadow-xl p-10 text-center hidden border-2 border-green-400 bg-green-50">
+            <div class="text-6xl mb-4">🏆</div>
+            <h3 class="text-3xl font-black text-green-600 mb-3">太棒了！全部答對！</h3>
+            <p class="text-green-800 text-lg font-medium">你已經完全掌握了 Scratch 的基礎知識與動畫原理，繼續保持！</p>
+        </div>
+    </div>
+
+    <!-- 互動訊息彈窗 (取代 alert) -->
+    <div id="message-box" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-8 max-w-sm w-full mx-4 shadow-2xl text-center transform scale-95 transition-transform duration-300" id="message-content">
+            <div class="text-4xl mb-4" id="message-icon">⚠️</div>
+            <h3 class="text-2xl font-bold text-gray-800 mb-2" id="message-title">提示</h3>
+            <p class="text-gray-600 mb-6 text-lg" id="message-text">訊息內容</p>
+            <button onclick="closeMessageBox()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-8 rounded-xl w-full text-lg">確定</button>
+        </div>
+    </div>
+
+    <script>
+        // 題目資料 (共 25 題，依據教材內容精心設計)
+        const quizData = [
+            { q: "動畫的基本原理是什麼？", options: ["將連續動作分段畫成圖片並連續播放", "使用立體模型拍攝", "將圖片隨機播放", "使用文字描述動作"], ans: 0, exp: "動畫是將人、物的表情動作分段畫成圖片，再將圖片組成連續變化的畫面所構成的。" },
+            { q: "Scratch 具備哪兩種繪圖功能？", options: ["水彩與素描", "點陣與向量", "3D與2D", "黑白與彩色"], ans: 1, exp: "Scratch 具備了「點陣」與「向量」繪圖功能。" },
+            { q: "在 Scratch 中，主要透過哪兩個功能的搭配來自行製作動畫？", options: ["聲音與背景", "造型與積木程式", "擴充功能與變數", "滑鼠與鍵盤"], ans: 1, exp: "透過「造型」與「積木程式」的搭配就可以自製動畫。" },
+            { q: "關於 Scratch 中的角色名稱，下列敘述何者正確？", options: ["名稱可以重複", "名稱必須唯一，不可重複", "只能使用英文命名", "名稱長度不能超過3個字"], ans: 1, exp: "各角色都有唯一名稱，不能重複，且建議有意義的命名。" },
+            { q: "Scratch 角色的預設尺寸(大小)數值是多少？", options: ["0", "50", "100", "200"], ans: 2, exp: "角色的預設尺寸為 100，也就是圖片的原始大小。" },
+            { q: "如果想要將 Scratch 上的角色縮小，尺寸數值應該如何設定？", options: ["設定為大於100的數值", "設定為小於100的數值", "設定為0", "設定為負數"], ans: 1, exp: "尺寸數值小於 100 就是縮小，大於 100 就是放大。" },
+            { q: "在 Scratch 中，角色方向設定為「90」度，代表角色朝向哪一個方位？", options: ["向上", "向下", "向左", "向右"], ans: 3, exp: "方向設定為 90 度代表向右。" },
+            { q: "如果希望角色「向上」看，方向角度應該設定為多少？", options: ["0 (或360)", "90", "180", "-90"], ans: 0, exp: "方向設定為 0 度或 360 度代表向上。" },
+            { q: "角色方向設定為「-90」度(或270度)，代表角色朝向哪裡？", options: ["向上", "向下", "向左", "向右"], ans: 2, exp: "方向設定為 -90 度或 270 度代表向左。" },
+            { q: "角色方向設定為「180」度，代表角色朝向哪裡？", options: ["向上", "向下", "向左", "向右"], ans: 1, exp: "方向設定為 180 度代表向下。" },
+            { q: "請問 Scratch 角色的翻轉模式「包含」以下哪一種？", options: ["上下翻轉", "隨機翻轉", "左右翻轉", "對角線翻轉"], ans: 2, exp: "角色的翻轉模式包含：自由翻轉、左右翻轉、不能翻轉。" },
+            { q: "Scratch 舞台的 X 軸(橫軸)座標範圍大約是多少？", options: ["-100 到 100", "-180 到 180", "-240 到 240", "0 到 360"], ans: 2, exp: "X 軸座標的範圍為 -240 到 240 之間。" },
+            { q: "Scratch 舞台的 Y 軸(縱軸)座標範圍大約是多少？", options: ["-100 到 100", "-180 到 180", "-240 到 240", "0 到 360"], ans: 1, exp: "Y 軸座標的範圍為 -180 到 180 之間。" },
+            { q: "登入 Scratch 網站後，要建立一個新的專案，應該點擊上方選單的哪一個選項？", options: ["探索", "關於", "創造", "資料夾"], ans: 2, exp: "點選網頁上方的「創造」按鈕可以建立新專案並進入程式編輯頁面。" },
+            { q: "如果想要切換 Scratch 網頁的介面語言，應該點擊哪一個圖示？", options: ["地球圖示", "齒輪圖示", "放大鏡圖示", "星星圖示"], ans: 0, exp: "點擊頂部選單的「地球圖示」可以切換網頁的介面語言。" },
+            { q: "為什麼使用 Scratch 內建素材搜尋時，輸入中文有時候找不到東西？", options: ["因為網站壞掉了", "因為目前內建素材與背景都是用英語命名", "因為沒有網路", "因為不能搜尋"], ans: 1, exp: "目前 Scratch 的內建素材與背景都是使用英語命名的。" },
+            { q: "在「碰到會動的足球」實作中，我們選擇了運動類別裡的哪一個內建背景？", options: ["Playing Field", "Soccer", "Soccer 2", "Baseball"], ans: 2, exp: "實作中選擇了運動類別裡的「Soccer 2」作為背景。" },
+            { q: "為了方便辨識，實作中我們將「Soccer 2」背景名稱改為什麼？", options: ["操場", "體育場", "足球場", "運動場"], ans: 1, exp: "講義實作中，將背景名稱改為中文的「體育場」。" },
+            { q: "新增足球角色前，對預設的「貓咪」角色做了什麼動作？", options: ["放大它", "幫它換顏色", "把它刪除", "把它隱藏"], ans: 2, exp: "實作第一步是按下垃圾桶圖示，刪除預設的貓咪角色。" },
+            { q: "新增的內建足球角色，它的英文原名是什麼？", options: ["Basketball", "Tennis Ball", "Soccer Ball", "Football"], ans: 2, exp: "內建的足球角色名稱為「Soccer Ball」。" },
+            { q: "足球實作中，我們將 Soccer Ball 的角色名稱改為什麼？", options: ["籃球", "躲避球", "足球", "棒球"], ans: 2, exp: "將 Soccer Ball 的名稱改為中文的「足球」。" },
+            { q: "在足球的程式積木設定中，足球的初始「尺寸」被設定為多少？", options: ["50%", "70%", "100%", "120%"], ans: 1, exp: "程式一開始使用外觀積木將尺寸設為 70%。" },
+            { q: "設定足球的初始位置時，使用了「定位到 x:15, y:? 」，請問 y 座標準確是多少？", options: ["40", "0", "-40", "90"], ans: 2, exp: "初始定位設定為 x: 15, y: -40。" },
+            { q: "為了讓足球能夠「持續不斷」地旋轉，我們使用了哪一個控制積木？", options: ["如果...那麼", "等待1秒", "重複10次", "重複無限次"], ans: 3, exp: "使用「重複無限次」積木來包住旋轉積木，讓足球持續旋轉。" },
+            { q: "如果要設定足球平滑移動到舞台邊緣，我們使用了哪一種積木？", options: ["定位到 x: y:", "滑行 O 秒到 x: y:", "移動 10 點", "改變 X 10"], ans: 1, exp: "使用了「滑行 O 秒到 x: O, y: O」等積木來製作平滑的移動軌跡。" }
+        ];
+
+        // DOM 元素
+        const loginSection = document.getElementById('login-section');
+        const loginForm = document.getElementById('login-form');
+        const quizSection = document.getElementById('quiz-section');
+        const quizForm = document.getElementById('quiz-form');
+        const questionsContainer = document.getElementById('questions-container');
+        const resultSection = document.getElementById('result-section');
+        const msgBox = document.getElementById('message-box');
+        const msgContent = document.getElementById('message-content');
+        
+        let studentClass = '';
+        let studentSeat = '';
+
+        // 訊息對話框功能 (取代 alert)
+        function showMessage(title, text, icon = '⚠️') {
+            document.getElementById('message-title').textContent = title;
+            document.getElementById('message-text').textContent = text;
+            document.getElementById('message-icon').textContent = icon;
+            msgBox.classList.remove('hidden');
+            msgBox.classList.add('flex');
+            // 動畫效果
+            setTimeout(() => {
+                msgContent.classList.remove('scale-95');
+                msgContent.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeMessageBox() {
+            msgContent.classList.remove('scale-100');
+            msgContent.classList.add('scale-95');
+            setTimeout(() => {
+                msgBox.classList.add('hidden');
+                msgBox.classList.remove('flex');
+            }, 200);
+        }
+
+        // 登入事件處理
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            studentClass = document.getElementById('student-class').value.trim();
+            studentSeat = document.getElementById('student-seat').value.trim();
+            
+            document.getElementById('display-info').textContent = `${studentClass} 班 ${studentSeat} 號`;
+            
+            // 隱藏登入，顯示測驗，並生成題目
+            loginSection.classList.add('hidden');
+            quizSection.classList.remove('hidden');
+            renderQuestions();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // 動態生成題目
+        function renderQuestions() {
+            questionsContainer.innerHTML = ''; 
+            
+            quizData.forEach((item, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question-card bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden';
+                
+                // 題號裝飾
+                const decHtml = `<div class="absolute top-0 left-0 w-2 h-full bg-teal-400"></div>`;
+
+                // 題幹
+                const titleHtml = `
+                <div class="flex items-start mb-6">
+                    <span class="bg-teal-100 text-teal-800 rounded-lg px-4 py-1.5 mr-4 text-xl font-black shadow-sm shrink-0">${index + 1}</span>
+                    <h3 class="text-xl md:text-2xl font-bold text-gray-800 leading-snug pt-1">${item.q}</h3>
+                </div>`;
+                
+                // 選項 (加入 required 屬性，防呆機制)
+                let optionsHtml = `<div class="space-y-3 pl-2 md:pl-16">`;
+                item.options.forEach((opt, optIndex) => {
+                    optionsHtml += `
+                        <label class="radio-label flex items-center space-x-4 p-3 rounded-xl border border-transparent hover:border-teal-100">
+                            <input type="radio" name="q${index}" value="${optIndex}" required class="mt-0.5">
+                            <span class="text-lg md:text-xl text-gray-700 font-medium">${opt}</span>
+                        </label>
+                    `;
+                });
+                optionsHtml += `</div>`;
+                
+                questionDiv.innerHTML = decHtml + titleHtml + optionsHtml;
+                questionsContainer.appendChild(questionDiv);
+            });
+        }
+
+        // 交卷事件處理
+        quizForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // 防止網頁重整
+            
+            // 表單本身的 HTML5 required 已經發揮作用，如果能觸發 submit 代表全填了
+            // 為了雙重保險，可以自己再算一次
+            let allAnswered = true;
+            for(let i=0; i<quizData.length; i++){
+                if(!document.querySelector(`input[name="q${i}"]:checked`)) {
+                    allAnswered = false;
+                    break;
+                }
+            }
+            
+            if(!allAnswered) {
+                showMessage("尚未完成", "請確認每一題都有作答喔！", "📝");
+                return;
+            }
+
+            let correctCount = 0;
+            const mistakes = [];
+
+            // 批改邏輯
+            quizData.forEach((item, index) => {
+                const selectedOption = document.querySelector(`input[name="q${index}"]:checked`);
+                if (selectedOption) {
+                    const selectedValue = parseInt(selectedOption.value, 10);
+                    if (selectedValue === item.ans) {
+                        correctCount++;
+                    } else {
+                        // 記錄錯題
+                        mistakes.push({
+                            questionNum: index + 1,
+                            questionText: item.q,
+                            userAnswer: item.options[selectedValue],
+                            correctAnswer: item.options[item.ans],
+                            explanation: item.exp
+                        });
+                    }
+                }
+            });
+
+            // 計算分數 (25題，每題4分)
+            const score = correctCount * 4;
+
+            // 顯示成績與資訊
+            document.getElementById('result-class').textContent = studentClass;
+            document.getElementById('result-seat').textContent = studentSeat;
+            
+            // 分數顏色判斷
+            const scoreEl = document.getElementById('final-score');
+            scoreEl.textContent = score;
+            if (score >= 90) { scoreEl.className = "text-green-500"; }
+            else if (score >= 60) { scoreEl.className = "text-teal-600"; }
+            else { scoreEl.className = "text-rose-500"; }
+
+            // 處理錯題解析顯示
+            const mistakesContainer = document.getElementById('mistakes-container');
+            const mistakesList = document.getElementById('mistakes-list');
+            const perfectScoreMsg = document.getElementById('perfect-score-msg');
+            
+            mistakesList.innerHTML = ''; // 清空
+
+            if (mistakes.length > 0) {
+                mistakes.forEach(mistake => {
+                    const mistakeHtml = `
+                        <div class="bg-rose-50 p-6 rounded-xl border-l-8 border-rose-400 shadow-sm relative overflow-hidden">
+                            <h4 class="text-xl font-bold text-gray-800 mb-4 pr-8">第 ${mistake.questionNum} 題：${mistake.questionText}</h4>
+                            <div class="flex flex-col space-y-3 mb-4">
+                                <p class="text-rose-500 font-medium text-lg">❌ 你的答案：<span class="line-through opacity-80">${mistake.userAnswer}</span></p>
+                                <p class="text-green-600 font-bold text-lg flex items-start">
+                                    <span class="mr-1">✅</span>
+                                    <span>正確解答：${mistake.correctAnswer}</span>
+                                </p>
+                            </div>
+                            <div class="bg-white text-gray-700 p-4 rounded-lg text-lg border border-rose-100 leading-relaxed shadow-sm">
+                                <strong class="text-rose-600">💡 說明：</strong>${mistake.explanation}
+                            </div>
+                        </div>
+                    `;
+                    mistakesList.innerHTML += mistakeHtml;
+                });
+                mistakesContainer.classList.remove('hidden');
+                perfectScoreMsg.classList.add('hidden');
+            } else {
+                mistakesContainer.classList.add('hidden');
+                perfectScoreMsg.classList.remove('hidden');
+            }
+
+            // 切換畫面
+            quizSection.classList.add('hidden');
+            resultSection.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>
